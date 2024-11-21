@@ -1,43 +1,61 @@
-import {useEffect, useState} from "react";
+import {useEffect} from "react";
 import Navbar from "./components/Navbar.tsx";
+import {setShips, setCurrentParkingId, setCurrentCount, setInputValue} from "./redux/shipsSlice.ts";
 import {Link} from "react-router-dom";
 import Breadcrumbs from "./components/Breadcrumbs.tsx";
+import lirica from "./assets/LI.jpg";
+import orchestra from "./assets/OR.jpeg";
+import opera from "./assets/OP.jpg";
+import korzina from "./assets/korzina2.png";
+import {useDispatch, useSelector} from "react-redux";
+interface Ship {
+    id_ship: number;
+    ship_name: string;
+    class_name: string;
+    description: string;
+    img_url: string;
+}
+
 
 
 const mockShips = [
-    { id_ship: 1, ship_name: 'LIRICA', class_name: 'Круизный лайнер', img_url: 'http://127.0.0.1:9000/rip/LI.jpg' },
-    { id_ship: 2, ship_name: 'ORCHESTRA', class_name: 'Баржа', img_url: 'http://127.0.0.1:9000/rip/OR.jpeg' },
-    { id_ship: 3, ship_name: 'OPERA', class_name: 'Круизный лайнер', img_url: 'http://127.0.0.1:9000/rip/OP.jpg' },
+    { id_ship: 1, ship_name: 'LIRICA', class_name: 'Круизный лайнер', img_url: lirica },
+    { id_ship: 2, ship_name: 'ORCHESTRA', class_name: 'Баржа', img_url: orchestra },
+    { id_ship: 3, ship_name: 'OPERA', class_name: 'Круизный лайнер', img_url: opera },
 ];
 
 const ShipsPage = () => {
-    const [inputValue, setInputValue] = useState('');
-    const [ships, setShips] = useState(mockShips);
-    const [currentParkingId, setCurrentParkingId] = useState(null);
-    const [currentCount, setCurrentCount] = useState(0);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    const { ships, inputValue, currentParkingId, currentCount } = useSelector((state) => state.ships);
+    const dispatch = useDispatch();
+    // const [inputValue, setInputValue] = useState('');
+    // const [ships, setShips] = useState(mockShips);
+    // const [currentParkingId, setCurrentParkingId] = useState(null);
+    // const [currentCount, setCurrentCount] = useState(0);
 
     const fetchShips = async () => {
-        try {
-            const response = await fetch('/api/ships/');
-            const shipsData = await response.json();
-            const filteredData = shipsData.filter((item: { id_ship: undefined; }) => item.id_ship !== undefined);
-            const parkingIdData = shipsData.find((item: { parking_id: undefined; }) => item.parking_id);
-            const parkingCountData = shipsData.find((item: { count: undefined; }) => item.count);
-            setShips(filteredData);
-            setShips(filteredData);
-            setCurrentParkingId(parkingIdData?.parking_id || null);
-            setCurrentCount(parkingCountData?.count || 0);
-        } catch (error) {
-            console.error('Ошибка при загрузке данных кораблей:', error);
-            setShips(mockShips);
-            setShips(mockShips);
-            setCurrentParkingId(null);
-            setCurrentCount(0);
+        if (ships.length === 0) {
+            try {
+                const response = await fetch('/api/ships/');
+                const shipsData = await response.json();
+                const filteredData = shipsData.filter((item: { id_ship: undefined; }) => item.id_ship !== undefined);
+                const parkingIdData = shipsData.find((item: { parking_id: undefined; }) => item.parking_id);
+                const parkingCountData = shipsData.find((item: { count: undefined; }) => item.count);
+                dispatch(setShips(filteredData));
+                dispatch(setCurrentParkingId(parkingIdData?.parking_id || null));
+                dispatch(setCurrentCount(parkingCountData?.count || 0));
+            } catch (error) {
+                console.error('Ошибка при загрузке данных кораблей:', error);
+                dispatch(setShips(mockShips));
+                dispatch(setCurrentParkingId(null));
+                dispatch(setCurrentCount(0));
+            }
         }
     };
     useEffect(() => {
         fetchShips();
-    }, []);
+    }, [dispatch, ships]);
 
     const handleSearch = async (class_name: { preventDefault: () => void; }) => {
         class_name.preventDefault();
@@ -45,7 +63,7 @@ const ShipsPage = () => {
             const response = await fetch(`/api/ships/?class_name=${inputValue}`);
             const result = await response.json();
             const filteredResult = result.filter((item: { id_ship: undefined; }) => item.id_ship !== undefined);
-            setShips(filteredResult);
+            dispatch(setShips(filteredResult));
         } catch (error) {
             console.error('Ошибка при выполнении поиска:', error);
             const filteredLocalShips = mockShips.filter(ship => {
@@ -54,7 +72,7 @@ const ShipsPage = () => {
                     : true;
                 return matchesClassName;
             });
-            setShips(filteredLocalShips);
+            dispatch(setShips(filteredLocalShips));
         }
     };
 
@@ -71,7 +89,7 @@ const ShipsPage = () => {
                 <input
                     type="text"
                     value={inputValue}
-                    onChange={(ship_class) => setInputValue(ship_class.target.value)}
+                    onChange={(ship_class) => dispatch(setInputValue(ship_class.target.value))}
                     placeholder="Поиск..."
                     className="p-2 w-1/2 h-10 border rounded-md"
                 />
@@ -86,8 +104,8 @@ const ShipsPage = () => {
             </div>
             <div className="ml-4">
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {ships.map(ship => (
-                        <li key={ship.id_ship}
+                    {ships.map((ship: Ship) => (
+                        <li key={ship?.id_ship}
                             className="shadow-lg transition-all duration-300 rounded-md border
                              m-5 bg-white relative">
                             <img src={ship.img_url} alt={ship.ship_name}
@@ -95,12 +113,12 @@ const ShipsPage = () => {
                             />
 
                             <div className="flex justify-center">
-                                <Link to={`/ships/${ship.id_ship}`}
+                                <Link to={`/ships/${ship?.id_ship}`}
                                       className=" no-underline mt-2 text-black text-2xl">{ship.ship_name}</Link>
                             </div>
 
                             <div className="flex justify-center">
-                                <Link to={`/ships/${ship.id_ship}`}
+                                <Link to={`/ships/${ship?.id_ship}`}
                                       className=" no-underline mt-2 text-black text-2xl">Класс: {ship.class_name}</Link>
                             </div>
                             <div className="m-0 p-0">
@@ -123,7 +141,7 @@ const ShipsPage = () => {
                 <Link to={`#/parking/${currentParkingId}`} className="pointer-events-none">
                     <img
                         className="basket w-16 h-16 rounded-full bg-white transition-all duration-500 hover:bg-red-600"
-                        src="http://127.0.0.1:9000/rip/korzina2.png" alt="store icon"/>
+                        src={korzina} alt="store icon"/>
                     <div
                         className="absolute bottom-2 left-5 inline-block text-center w-6 h-6 rounded-full bg-red-600 border border-white">
                         <p className="top-0 w-5.5 h-4 font-roboto text-white font-bold text-md text-center justify-center">{currentCount}</p>

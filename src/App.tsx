@@ -5,7 +5,7 @@ import ShipDescriptionPage from "./ShipDescriptionPage.tsx";
 
 function App() {
     return (
-        <BrowserRouter basename="/RIP_frontend">
+        <BrowserRouter basename="/frontend_ships">
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/ships" element={<ShipsPage />} />
