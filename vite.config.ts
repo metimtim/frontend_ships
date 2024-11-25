@@ -14,6 +14,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, "/"),
       },
+      '/tauri-api': {
+        target: 'http://localhost:8000/tauri',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/tauri-api/, ''),
+      },
     },
   },
 });

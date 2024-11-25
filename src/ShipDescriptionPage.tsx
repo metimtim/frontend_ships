@@ -5,6 +5,7 @@ import Breadcrumbs from "./components/Breadcrumbs.tsx";
 import lirica from "./assets/LI.jpg";
 import orchestra from "./assets/OR.jpeg";
 import opera from "./assets/OP.jpg";
+import { getApiBaseUrl } from './api.tsx';
 
 interface Ship {
     id_ship: number;
@@ -13,6 +14,8 @@ interface Ship {
     description: string;
     img_url: string;
 }
+
+
 
 
 const mockShips: Ship[] = [
@@ -42,7 +45,12 @@ const ShipDescriptionPage = () => {
 
     const fetchShip = async () => {
         try {
-            const response = await fetch(`/api/ships/${shipId}/`);
+
+
+// Определяем базовый URL для API запросов
+
+            const baseUrl = getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/ships/${shipId}/`);
 
             if (!response.ok) {
                 throw new Error('Ошибка при загрузке данных');

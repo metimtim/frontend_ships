@@ -8,6 +8,9 @@ import orchestra from "./assets/OR.jpeg";
 import opera from "./assets/OP.jpg";
 import korzina from "./assets/korzina2.png";
 import {useDispatch, useSelector} from "react-redux";
+import { getApiBaseUrl } from './api.tsx';
+
+// Определяем базовый URL для API запросо
 interface Ship {
     id_ship: number;
     ship_name: string;
@@ -37,7 +40,8 @@ const ShipsPage = () => {
     const fetchShips = async () => {
         if (ships.length === 0) {
             try {
-                const response = await fetch('/api/ships/');
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}/ships/`);
                 const shipsData = await response.json();
                 const filteredData = shipsData.filter((item: { id_ship: undefined; }) => item.id_ship !== undefined);
                 const parkingIdData = shipsData.find((item: { parking_id: undefined; }) => item.parking_id);
@@ -60,7 +64,8 @@ const ShipsPage = () => {
     const handleSearch = async (class_name: { preventDefault: () => void; }) => {
         class_name.preventDefault();
         try {
-            const response = await fetch(`/api/ships/?class_name=${inputValue}`);
+            const baseUrl = getApiBaseUrl();
+            const response = await fetch(`${baseUrl}/ships/?class_name=${inputValue}`);
             const result = await response.json();
             const filteredResult = result.filter((item: { id_ship: undefined; }) => item.id_ship !== undefined);
             dispatch(setShips(filteredResult));
