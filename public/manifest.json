@@ -1,14 +1,14 @@
 {
   "name": "Tim Cruise",
   "short_name": "Tim Cruise",
-  "start_url": "/frontend_ships",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#fdfdfd",
   "theme_color": "#db4938",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/frontend_ships/icons/logo.png",
+      "src": "/icons/logo.png",
       "type": "image/png", "sizes": "225x225"
     }
   ]

@@ -2,21 +2,40 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "frontend_ships",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "com.github.timpronchenko.frontend-ships",
   "build": {
-    "frontendDist": "../build",
-    "devUrl": "http://localhost:3000",
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:3000",
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build"
   },
+  "plugins": {
+    "http": {
+      "enabled": true
+    },
+    "allowlist": {
+      "http": {
+        "request": true,
+        "scope": [
+          "http://localhost:3000/**",
+          "http://127.0.0.1:3000/**",
+          "http://localhost:3002/**",
+          "http://127.0.0.1:3002/**",
+          "http://localhost:8000/**",
+          "http://127.0.0.1:8000/**"
+        ]
+      }
+    }},
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "frontend_ships",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "height": 768,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "devtools": true
       }
     ],
     "security": {
