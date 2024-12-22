@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import Navbar from "./components/Navbar.tsx";
-import {setShips, setCurrentParkingId, setCurrentCount, setInputValue} from "./redux/shipsSlice.ts";
+import {addShipToDraft, fetchShips, searchShips, setInputValue} from './redux/shipsSlice';
+// import {setShips, setCurrentParkingId, setCurrentCount, setInputValue} from "./redux/shipsSlice.ts";
 import {Link} from "react-router-dom";
 import Breadcrumbs from "./components/Breadcrumbs.tsx";
 import lirica from "./assets/LI.jpg";
@@ -34,91 +35,21 @@ const mockShips = [
 ];
 
 const ShipsPage = () => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    const { ships, inputValue, currentParkingId, currentCount } = useSelector((state) => state.ships);
+    const { ships, inputValue, currentParkingId, currentCount, loading, error } = useSelector((state) => state.ships);
     const dispatch = useDispatch();
-    // const [inputValue, setInputValue] = useState('');
-    // const [ships, setShips] = useState(mockShips);
-    // const [currentParkingId, setCurrentParkingId] = useState(null);
-    // const [currentCount, setCurrentCount] = useState(0);
 
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-    const fetchShips = async () => {
-        try {
-            const response = await api.ships.shipsList();
-
-            const shipsData = response.data.filter((item) => item.id_ship !== undefined);
-            dispatch(setShips(shipsData));
-
-
-            const parkingIdData = response.data.find((item) => item.draft_request_id);
-            const parkingCountData = response.data.find((item) => item.count);
-            console.log(shipsData, parkingIdData, parkingCountData);
-            dispatch(setCurrentParkingId(parkingIdData?.draft_request_id || null));
-            dispatch(setCurrentCount(parkingCountData?.count || 0));
-
-            // Если данные содержат информацию об авторизованном пользователе
-            setIsAuthenticated(!!parkingIdData);
-        } catch (error) {
-            console.error('Ошибка при загрузке данных МО:', error);
-            dispatch(setShips([]));
-        }
-    };
     useEffect(() => {
-        fetchShips();
+        dispatch(fetchShips());
     }, [dispatch]);
 
-    const handleSearch = async (class_name: { preventDefault: () => void; }) => {
-        class_name.preventDefault();
-        try {
-            const response = await api.ships.shipsList({
-                class_name: inputValue,
-            });
-            const filteredShips = response.data.filter((item) => item.id_ship !== undefined);
-            dispatch(setShips(filteredShips));
-        } catch (error) {
-            console.error('Ошибка при выполнении поиска:', error);
-
-            const filteredMockShips = mockShips.filter((ship) => {
-                const matchesClass = inputValue
-                    ? ship.class_name.toLowerCase().includes(inputValue.toLowerCase())
-                    : true;
-                return matchesClass;
-            });
-
-            dispatch(setShips(filteredMockShips)); // Локальный поиск
-        }
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        dispatch(searchShips(inputValue));
     };
 
-    const handleAddShip = async (ship_id: number) => {
-        try {
-            const csrfToken = Cookies.get('csrftoken');
-            const response = await api.ships.shipsAddCreate(ship_id, {}, {
-                headers: {
-                    'X-CSRFToken': csrfToken
-                }
-            });
-
-            if (response.status === 201) {
-                const updatedParkingId = response.data.draft_request_id;
-
-                // Увеличиваем currentCount локально
-                dispatch(setCurrentParkingId(updatedParkingId));
-                dispatch(setCurrentCount(currentCount + 1));
-
-                dispatch(setShips(ships.filter(ship => ship.id_ship !== ship_id)));
-            } else {
-                console.error('Ошибка при добавлении МО: неожиданный статус ответа', response.status);
-            }
-        } catch (error) {
-            console.error('Ошибка при добавлении МО:', error);
-        }
-        fetchShips();
+    const handleAddShip = (shipId: number) => {
+        dispatch(addShipToDraft(shipId));
     };
-
-
 
     return (
         <div className="bg-slate-100 font-timoxa">

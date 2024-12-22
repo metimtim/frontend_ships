@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Navbar from "./components/Navbar.tsx";
 import Cookies from "js-cookie";
-import Modal from "./components/Modal.tsx";
 import { setCurrentParkingId, setCurrentCount } from "./redux/shipsSlice.ts";
 
 const ParkingPage = () => {
@@ -14,10 +13,7 @@ const ParkingPage = () => {
     const [currentShips, setCurrentShips] = useState([]);
     const [loading, setLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
-    const [editShip, setEditShip] = useState(null);
     const [newCaptain, setNewCaptain] = useState('');
-    const [status, setStatus] = useState('');
-    const [isModalOpen, setModalOpen] = useState(false);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -28,7 +24,6 @@ const ParkingPage = () => {
             if (!response.ok) throw new Error("Ошибка загрузки данных!");
             const data = await response.json();
             setCurrentShips(data.ships);
-            setStatus(data.status);
             setDateOfParking(data.date_of_parking);
             setPort(data.port);
         } catch (error) {
@@ -99,37 +94,30 @@ const ParkingPage = () => {
         }
     };
 
-    const handleEditCaptain = (shipId, currentCaptain) => {
-        setEditShip(shipId);
-        setNewCaptain(currentCaptain);
-        setModalOpen(true);
-    };
-
-    const handleSaveCaptain = async () => {
-        try {
-            const csrfToken = Cookies.get("csrftoken");
-            const response = await fetch(`/api/add-captain/${parkingId}/ship/${editShip}/`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
-                body: JSON.stringify({ captain: newCaptain }),
-            });
-            if (response.ok) {
-                setCurrentShips((prev) =>
-                    prev.map((ship) =>
-                        ship.id_ship === editShip ? { ...ship, captain: newCaptain } : ship
-                    )
-                );
-                setModalOpen(false);
-            } else {
-                alert("Ошибка при обновлении капитана");
-            }
-        } catch (error) {
-            console.error("Ошибка:", error);
-        }
-    };
+    // const handleSaveCaptain = async (shipId) => {
+    //     try {
+    //         const csrfToken = Cookies.get("csrftoken");
+    //         const response = await fetch(`/api/add-captain/${parkingId}/ship/${shipId}/`, {
+    //             method: "PUT",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 "X-CSRFToken": csrfToken,
+    //             },
+    //             body: JSON.stringify({ captain: newCaptain }),
+    //         });
+    //         if (response.ok) {
+    //             setCurrentShips((prev) =>
+    //                 prev.map((ship) =>
+    //                     ship.id_ship === shipId ? { ...ship, captain: newCaptain } : ship
+    //                 )
+    //             );
+    //         } else {
+    //             alert("Ошибка при обновлении капитана");
+    //         }
+    //     } catch (error) {
+    //         console.error("Ошибка:", error);
+    //     }
+    // };
 
     const handleFormParking = async () => {
         try {
@@ -153,7 +141,7 @@ const ParkingPage = () => {
     return (
         <div className="bg-gray-100 min-h-screen">
             <div className="bg-[#060F1E]">
-                <Navbar/>
+                <Navbar />
             </div>
 
             {/* Заголовок */}
@@ -201,39 +189,76 @@ const ParkingPage = () => {
                 {currentShips.map((ship) => (
                     <div
                         key={ship.pk}
-                        className="flex items-center p-4 bg-white rounded shadow-md space-x-4"
+                        className="flex items-start p-4 bg-white rounded shadow-md space-x-4"
+                        style={{ height: "130px" }}
                     >
                         {/* Картинка корабля */}
                         <img
                             src={ship.img_url || "https://via.placeholder.com/150"}
                             alt={ship.ship_name}
-                            className="w-36 h-32 object-cover rounded-md"
+                            className="w-24 h-24 object-cover rounded-md"
                         />
 
                         {/* Информация о корабле */}
                         <div className="flex-1">
-                            <h2 className="text-lg font-bold text-gray-800">{ship.ship_name}</h2>
+                            <h2 className="text-md font-bold text-gray-800">{ship.ship_name}</h2>
                             <p className="text-sm text-gray-600">Класс: {ship.class_name}</p>
-                            <p className="text-sm text-gray-600">Капитан: {ship.captain || "Не назначен"}</p>
-
-                            {/* Кнопки действий */}
-                            <div className="flex space-x-2 mt-4">
-                                <button
-                                    onClick={() => handleEditCaptain(ship.id_ship, ship.captain || "")}
-                                    className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
-                                >
-                                    Редактировать капитана
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteShip(ship.id_ship)}
-                                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                                >
-                                    Удалить
-                                </button>
+                            <div className="flex items-center mt-2">
+                                <span className="text-sm text-gray-600 mr-2">Капитан:</span>
+                                <input
+                                    type="text"
+                                    value={ship.captain || ""}
+                                    onChange={(e) =>
+                                        setCurrentShips((prev) =>
+                                            prev.map((s) =>
+                                                s.id_ship === ship.id_ship
+                                                    ? { ...s, captain: e.target.value }
+                                                    : s
+                                            )
+                                        )
+                                    }
+                                    className="p-1 border rounded w-28"
+                                />
                             </div>
+                        </div>
+                        {/* Кнопки действий */}
+                        <div className="flex flex-col items-end space-y-2 mt-4">
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const csrfToken = Cookies.get("csrftoken");
+                                        const response = await fetch(
+                                            `/api/add-captain/${parkingId}/ship/${ship.id_ship}/`,
+                                            {
+                                                method: "PUT",
+                                                headers: {
+                                                    "Content-Type": "application/json",
+                                                    "X-CSRFToken": csrfToken,
+                                                },
+                                                body: JSON.stringify({ captain: ship.captain }),
+                                            }
+                                        );
+                                        if (!response.ok) throw new Error("Ошибка при обновлении капитана");
+                                        alert("Капитан успешно обновлен");
+                                    } catch (error) {
+                                        console.error("Ошибка:", error);
+                                        alert("Не удалось обновить капитана");
+                                    }
+                                }}
+                                className="min-w-24 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                            >
+                                Сохранить
+                            </button>
+                            <button
+                                onClick={() => handleDeleteShip(ship.id_ship)}
+                                className="min-w-24 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                            >
+                                Удалить
+                            </button>
                         </div>
                     </div>
                 ))}
+
             </div>
 
             {/* Кнопки управления заявкой */}
@@ -252,32 +277,13 @@ const ParkingPage = () => {
                 </button>
             </div>
 
-            {/* Модалка для редактирования капитана */}
-            {isModalOpen && (
-                <Modal onClose={() => setModalOpen(false)}>
-                    <h2 className="text-2xl font-bold mb-4">Редактирование капитана</h2>
-                    <input
-                        type="text"
-                        value={newCaptain}
-                        onChange={(e) => setNewCaptain(e.target.value)}
-                        className="p-2 border rounded w-full mb-4"
-                    />
-                    <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-                        onClick={handleSaveCaptain}
-                    >
-                        Сохранить
-                    </button>
-                </Modal>
-            )}
-
             {/* Сообщение об ошибке */}
             {errorMessage && (
                 <div className="text-center text-red-500 font-medium mt-4">{errorMessage}</div>
             )}
         </div>
-
     );
+
 };
 
 export default ParkingPage;

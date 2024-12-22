@@ -35,64 +35,71 @@ const ParkingsHistoryPage = () => {
     return (
         <div className="min-h-screen bg-gray-100 font-timoxa">
             <div className="bg-[#060F1E]">
-                <Navbar />
+                <Navbar/>
             </div>
 
-            <Breadcrumbs path="/parkings" />
+            <Breadcrumbs path="/parkings"/>
 
             <div className="container mx-auto mt-10 px-4">
-                <h2 className="text-2xl font-semibold mb-4">Мои заявки</h2>
+                <h2 className="text-2xl font-semibold mb-4">Мои заявки парковок</h2>
 
                 {loading ? (
                     <div className="flex justify-center items-center h-72">
-                        <div
-                            className="loader border-t-4 border-b-4 border-gray-700 w-12 h-12 rounded-full animate-spin"></div>
+                        <div className="loader border-t-4 border-b-4 border-white w-12 h-12 rounded-full animate-spin"></div>
                     </div>
                 ) : error ? (
                     <div className="bg-red-500 text-white p-4 rounded">{error}</div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full table-auto bg-white text-gray-800 border-collapse shadow-md rounded-lg">
-                            <thead className="bg-gray-200 text-gray-700">
-                            <tr>
-                                <th className="px-4 py-2 border">Номер заявки</th>
-                                <th className="px-4 py-2 border">Статус</th>
-                                <th className="px-4 py-2 border">Дата создания</th>
-                                <th className="px-4 py-2 border">Дата формирования</th>
-                                <th className="px-4 py-2 border">Дата завершения</th>
-                                <th className="px-4 py-2 border">Модератор</th>
-                                <th className="px-4 py-2 border">Траты команды</th>
-                                <th className="px-4 py-2 border">Действия</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {parkings.map((parking) => (
-                                <tr key={parking.id_parking} className="border-b hover:bg-gray-100">
-                                    <td className="px-4 py-2 border text-center">{parking.id_parking}</td>
-                                    <td className="px-4 py-2 border text-center">{parking.status}</td>
-                                    <td className="px-4 py-2 border text-center">
+                    <div className="space-y-4">
+                        {parkings.map((parking) => (
+                            <div
+                                key={parking.id_parking}
+                                className="bg-[#1A1D2B] text-gray-300 rounded p-4 shadow-md hover:bg-[#333A4E] transition"
+                            >
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Номер заявки</span>
+                                        {parking.id_parking}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Статус</span>
+                                        {parking.status}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Дата создания</span>
                                         {new Date(parking.created_at).toLocaleString()}
-                                    </td>
-                                    <td className="px-4 py-2 border text-center">
-                                        {parking.formed_at ? new Date(parking.formed_at).toLocaleString() : '-'}
-                                    </td>
-                                    <td className="px-4 py-2 border text-center">
-                                        {parking.ended_at ? new Date(parking.ended_at).toLocaleString() : '-'}
-                                    </td>
-                                    <td className="px-4 py-2 border text-center">{parking.moderator || '-'}</td>
-                                    <td className="px-4 py-2 border text-center">{parking.spendings_of_crew || 0} ₽</td>
-                                    <td className="px-4 py-2 border text-center">
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Дата формирования</span>
+                                        {parking.formed_at
+                                            ? new Date(parking.formed_at).toLocaleString()
+                                            : '-'}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Дата завершения</span>
+                                        {parking.ended_at
+                                            ? new Date(parking.ended_at).toLocaleString()
+                                            : '-'}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Модератор</span>
+                                        {parking.moderator || '-'}
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="font-semibold block">Траты команды</span>
+                                        {parking.spendings_of_crew || 0} ₽
+                                    </div>
+                                    <div className="text-center">
                                         <Link
                                             to={`/parking/${parking.id_parking}`}
-                                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                                         >
                                             Просмотр
                                         </Link>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
